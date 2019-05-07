@@ -1,5 +1,3 @@
-"decimal ↔ hexadecimal conversions
-
 let s:HEX_CHARS = [
   \ '0', '1', '2', '3', '4', '5', '6', '7',
   \ '8', '9', 'A', 'B', 'C', 'D', 'E', 'F']
@@ -18,7 +16,7 @@ endfunction
 
 function! s:Convert(string, source_base, target_base)
   let input = split(toupper(a:string), '.\zs')
-  let output = repeat(['0'], len(input) * 2)
+  let output = repeat(['0'], len(input) * 4)
   for digit in input
     let idx = index(s:HEX_CHARS, digit)
     if idx == -1
@@ -33,57 +31,69 @@ function! s:Convert(string, source_base, target_base)
   return join(output, '')
 endfunction
 
-command! -nargs=? -range DecHex call s:Dec2Hex(<line1>, <line2>, '<args>')
-function! s:Dec2Hex(line1, line2, arg) range
-  if empty(a:arg)
-    if histget(':', -1) =~# "^'<,'>" && visualmode() !=# 'V'
-      let cmd = 's/\%V\<\d\+\>/\=printf("0x%s",s:Convert(submatch(0), 10, 16))/g'
-    else
-      let cmd = 's/\<\d\+\>/\=printf("0x%s",s:Convert(submatch(0), 10, 16))/g'
-    endif
-    try
-      execute a:line1 . ',' . a:line2 . cmd
-    catch
-      echo 'Error: No decimal number found'
-    endtry
-  else
-    echo '0x' . s:Convert(a:arg, 10, 16)
-  endif
+command! -nargs=? -range DEC call s:2Dec(<line1>, <line2>)
+function! s:2Dec(line1, line2) range
+  call s:Hex2Dec(a:line1, a:line2)
+  call s:Bin2Dec(a:line1, a:line2)
+  call s:Oct2Dec(a:line1, a:line2) " must be last
 endfunction
 
-command! -nargs=? -range HexDec call s:Hex2Dec(<line1>, <line2>, '<args>')
-function! s:Hex2Dec(line1, line2, arg) range
-  if empty(a:arg)
-    if histget(':', -1) =~# "^'<,'>" && visualmode() !=# 'V'
-      let cmd = 's/\%V0x\(\x\+\)/\=printf("%s",s:Convert(submatch(1), 16, 10))/g'
-    else
-      let cmd = 's/0x\(\x\+\)/\=printf("%s",s:Convert(submatch(1), 16, 10))/g'
-    endif
-    try
-      execute a:line1 . ',' . a:line2 . cmd
-    catch
-      echo 'Error: No hex number starting "0x" found'
-    endtry
-  else
-    let tmp = substitute(a:arg, '^0x', '', 'i')
-    echo s:Convert(tmp, 16, 10)
-  endif
+command! -nargs=? -range DH call s:Dec2Hex(<line1>, <line2>)
+function! s:Dec2Hex(line1, line2) range
+  let cmd = 's/\<\d\+\>/\=printf("0x%s",s:Convert(submatch(0), 10, 16))/g'
+  try 
+    execute a:line1 . ',' . a:line2 . cmd
+  catch
+    echo 'No decimal number found'
+  endtry
 endfunction
 
-command! -nargs=? -range DecOct call s:Dec2Oct(<line1>, <line2>, '<args>')
-function! s:Dec2Oct(line1, line2, arg) range
-  if empty(a:arg)
-    if histget(':', -1) =~# "^'<,'>" && visualmode() !=# 'V'
-      let cmd = 's/\%V\<\d\+\>/\=printf("0x%s",s:Convert(submatch(0), 10, 8))/g'
-    else
-      let cmd = 's/\<\d\+\>/\=printf("0x%s",s:Convert(submatch(0), 10, 8))/g'
-    endif
-    try
-      execute a:line1 . ',' . a:line2 . cmd
-    catch
-      echo 'Error: No decimal number found'
-    endtry
-  else
-    echo '0x' . s:Convert(a:arg, 10, 8)
-  endif
+command! -nargs=? -range HD call s:Hex2Dec(<line1>, <line2>)
+function! s:Hex2Dec(line1, line2) range
+  let cmd = 's/0x\(\x\+\)/\=printf("%s",s:Convert(submatch(1), 16, 10))/g'
+  try
+    execute a:line1 . ',' . a:line2 . cmd
+  catch
+    echo 'No hex number starting with "0x" found'
+  endtry
+endfunction
+
+command! -nargs=? -range DB call s:Dec2Bin(<line1>, <line2>)
+function! s:Dec2Bin(line1, line2) range
+  let cmd = 's/\<\d\+\>/\=printf("0b%s",s:Convert(submatch(0), 10, 2))/g'
+  try 
+    execute a:line1 . ',' . a:line2 . cmd
+  catch
+    echo 'No decimal number found'
+  endtry
+endfunction
+
+command! -nargs=? -range BD call s:Bin2Dec(<line1>, <line2>)
+function! s:Bin2Dec(line1, line2) range
+  let cmd = 's/0b\(\x\+\)/\=printf("%s",s:Convert(submatch(1), 2, 10))/g'
+  try
+    execute a:line1 . ',' . a:line2 . cmd
+  catch
+    echo 'No bin number starting with "0b" found'
+  endtry
+endfunction
+
+command! -nargs=? -range DO call s:Dec2Oct(<line1>, <line2>)
+function! s:Dec2Oct(line1, line2) range
+  let cmd = 's/\<\d\+\>/\=printf("0%s",s:Convert(submatch(0), 10, 8))/g'
+  try 
+    execute a:line1 . ',' . a:line2 . cmd
+  catch
+    echo 'No decimal number found'
+  endtry
+endfunction
+
+command! -nargs=? -range OD call s:Oct2Dec(<line1>, <line2>)
+function! s:Oct2Dec(line1, line2) range
+  let cmd = 's/0\(\x\+\)/\=printf("%s",s:Convert(submatch(1), 8, 10))/g'
+  try
+    execute a:line1 . ',' . a:line2 . cmd
+  catch
+    echo 'No oct number starting with "0" found'
+  endtry
 endfunction
