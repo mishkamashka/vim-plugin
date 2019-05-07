@@ -1,3 +1,4 @@
+" TODO: link it to keys
 let s:HEX_CHARS = [
   \ '0', '1', '2', '3', '4', '5', '6', '7',
   \ '8', '9', 'A', 'B', 'C', 'D', 'E', 'F']
@@ -35,7 +36,7 @@ command! -nargs=? -range DEC call s:2Dec(<line1>, <line2>)
 function! s:2Dec(line1, line2) range
   call s:Hex2Dec(a:line1, a:line2)
   call s:Bin2Dec(a:line1, a:line2)
-  call s:Oct2Dec(a:line1, a:line2) " must be last
+  call s:Oct2Dec(a:line1, a:line2) " must be the last
 endfunction
 
 command! -nargs=? -range DH call s:Dec2Hex(<line1>, <line2>)
@@ -54,7 +55,7 @@ function! s:Hex2Dec(line1, line2) range
   try
     execute a:line1 . ',' . a:line2 . cmd
   catch
-    echo 'No hex number starting with "0x" found'
+    " echo 'No hex number starting with "0x" found'
   endtry
 endfunction
 
@@ -74,7 +75,7 @@ function! s:Bin2Dec(line1, line2) range
   try
     execute a:line1 . ',' . a:line2 . cmd
   catch
-    echo 'No bin number starting with "0b" found'
+    " echo 'No bin number starting with "0b" found'
   endtry
 endfunction
 
@@ -94,6 +95,6 @@ function! s:Oct2Dec(line1, line2) range
   try
     execute a:line1 . ',' . a:line2 . cmd
   catch
-    echo 'No oct number starting with "0" found'
+    " echo 'No oct number starting with "0" found'
   endtry
 endfunction
